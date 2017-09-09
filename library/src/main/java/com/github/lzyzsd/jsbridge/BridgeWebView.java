@@ -2,17 +2,13 @@ package com.github.lzyzsd.jsbridge;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
-import android.graphics.Bitmap;
 import android.os.Build;
 import android.os.Looper;
 import android.os.SystemClock;
 import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.webkit.WebView;
-import android.webkit.WebViewClient;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -131,7 +127,11 @@ public class BridgeWebView extends WebView implements WebViewJavascriptBridge {
         messageJson = messageJson.replaceAll("(?<=[^\\\\])(\")", "\\\\\"");
         String javascriptCommand = String.format(BridgeUtil.JS_HANDLE_MESSAGE_FROM_JAVA, messageJson);
         if (Thread.currentThread() == Looper.getMainLooper().getThread()) {
-            this.loadUrl(javascriptCommand);
+        	if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) {
+				this.loadUrl(javascriptCommand);
+			} else {
+				this.evaluateJavascript(javascriptCommand, null);
+			}
         }
     }
 
@@ -200,7 +200,11 @@ public class BridgeWebView extends WebView implements WebViewJavascriptBridge {
 	}
 
 	public void loadUrl(String jsUrl, CallBackFunction returnCallback) {
-		this.loadUrl(jsUrl);
+		if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) {
+			this.loadUrl(jsUrl);
+		} else {
+			this.evaluateJavascript(jsUrl, null);
+		}
 		responseCallbacks.put(BridgeUtil.parseFunctionName(jsUrl), returnCallback);
 	}
 
